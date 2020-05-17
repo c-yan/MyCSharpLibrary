@@ -66,7 +66,6 @@ namespace MyCSharpLibrary
             }
         LineEnd:
             result.Add(sb.ToString());
-            sb.Clear();
             return result;
         }
 
