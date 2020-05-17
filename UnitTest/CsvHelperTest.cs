@@ -436,5 +436,63 @@ namespace UnitTest
                 Assert.AreEqual(expected, actual);
             }
         }
+
+        public class Class3
+        {
+            [HeaderName("Id")]
+            public int A { get; set; }
+            [HeaderName("Message")]
+            public string B { get; set; }
+        }
+
+        [TestMethod]
+        public void SaveTest2()
+        {
+            var s = new Class3()
+            {
+                A = 1,
+                B = "hello",
+            };
+
+            using (var ms = new MemoryStream())
+            {
+                var expected = "\uFEFF\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n";
+                CsvHelper.Save(ms, new Class3[] { s });
+                var actual = Encoding.UTF8.GetString(ms.ToArray());
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
+        [TestMethod]
+        public void LoadTest1()
+        {
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n")))
+            {
+                var expected = new Class3()
+                {
+                    A = 1,
+                    B = "hello",
+                };
+                var actual = CsvHelper.Load<Class3>(ms).First();
+                Assert.AreEqual(expected.A, actual.A);
+                Assert.AreEqual(expected.B, actual.B);
+            }
+        }
+
+        [TestMethod]
+        public void LoadTest2()
+        {
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("\"Message\",\"Id\"\r\n\"hello\",\"1\"\r\n")))
+            {
+                var expected = new Class3()
+                {
+                    A = 1,
+                    B = "hello",
+                };
+                var actual = CsvHelper.Load<Class3>(ms).First();
+                Assert.AreEqual(expected.A, actual.A);
+                Assert.AreEqual(expected.B, actual.B);
+            }
+        }
     }
 }
