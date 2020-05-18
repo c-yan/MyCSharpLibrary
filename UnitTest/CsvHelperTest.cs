@@ -439,9 +439,9 @@ namespace UnitTest
 
         public class Class3
         {
-            [HeaderName("Id")]
+            [ColumnName("Id")]
             public int A { get; set; }
-            [HeaderName("Message")]
+            [ColumnName("Message")]
             public string B { get; set; }
         }
 

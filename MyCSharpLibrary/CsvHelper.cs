@@ -8,10 +8,10 @@ using System.Text;
 namespace MyCSharpLibrary
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class HeaderNameAttribute : Attribute
+    public sealed class ColumnNameAttribute : Attribute
     {
         public string Name { get; private set; }
-        public HeaderNameAttribute(string name) { Name = name; }
+        public ColumnNameAttribute(string name) { Name = name; }
     }
 
     public static class CsvHelper
@@ -143,22 +143,22 @@ namespace MyCSharpLibrary
             using (var reader = new StreamReader(stream, encoding))
             {
                 var header = ReadLine(reader);
-                var headerNameMap = typeof(T).GetProperties().Select(e =>
+                var columnToPropertyMap = typeof(T).GetProperties().Select(e =>
                 {
-                    var a = Attribute.GetCustomAttributes(e, typeof(HeaderNameAttribute));
+                    var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
                     if (a.Length == 0)
                     {
                         return new KeyValuePair<string, string>(e.Name, e.Name);
                     }
                     else
                     {
-                        return new KeyValuePair<string, string>((a[0] as HeaderNameAttribute).Name, e.Name);
+                        return new KeyValuePair<string, string>((a[0] as ColumnNameAttribute).Name, e.Name);
                     }
                 }).ToDictionary(e => e.Key, e => e.Value);
                 var headerMap = new Dictionary<string, int>();
                 for (var i = 0; i < header.Count; i++)
                 {
-                    headerMap[headerNameMap[header[i]]] = i;
+                    headerMap[columnToPropertyMap[header[i]]] = i;
                 }
 
                 foreach (var values in ReadLines(reader))
@@ -238,25 +238,25 @@ namespace MyCSharpLibrary
             if (encoding == null) encoding = Encoding.UTF8;
             using (var writer = new StreamWriter(stream, encoding))
             {
-                var headerName = typeof(T).GetProperties().Select(e =>
+                var headerLine = typeof(T).GetProperties().Select(e =>
                 {
-                    var a = Attribute.GetCustomAttributes(e, typeof(HeaderNameAttribute));
+                    var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
                     if (a.Length == 0)
                     {
                         return e.Name;
                     }
                     else
                     {
-                        return (a[0] as HeaderNameAttribute).Name;
+                        return (a[0] as ColumnNameAttribute).Name;
                     }
                 }).ToList();
-                writer.WriteLine(ToString(headerName));
+                writer.WriteLine(ToString(headerLine));
 
-                var header = typeof(T).GetProperties().Select(e => e.Name).ToList();
+                var propertyNames = typeof(T).GetProperties().Select(e => e.Name).ToList();
                 var headerMap = new Dictionary<string, int>();
-                for (var i = 0; i < header.Count; i++)
+                for (var i = 0; i < propertyNames.Count; i++)
                 {
-                    headerMap[header[i]] = i;
+                    headerMap[propertyNames[i]] = i;
                 }
                 foreach (var o in content)
                 {
