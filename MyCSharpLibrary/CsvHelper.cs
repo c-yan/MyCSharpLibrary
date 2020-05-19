@@ -77,14 +77,14 @@ namespace MyCSharpLibrary
             }
         }
 
-        public static T Bind<T>(Dictionary<string, int> headerMap, List<string> values)
+        public static T Bind<T>(Dictionary<string, int> nameToIndexMap, List<string> values)
             where T : class, new()
         {
             var result = new T();
             foreach (var p in typeof(T).GetProperties())
             {
-                if (!headerMap.ContainsKey(p.Name)) continue;
-                var value = values[headerMap[p.Name]];
+                if (!nameToIndexMap.ContainsKey(p.Name)) continue;
+                var value = values[nameToIndexMap[p.Name]];
 
                 var type = Nullable.GetUnderlyingType(p.PropertyType);
                 if (type == null)
@@ -156,22 +156,22 @@ namespace MyCSharpLibrary
                     }
                 }).ToDictionary(e => e.Key, e => e.Value);
 
-                var headerMap = new Dictionary<string, int>();
+                var nameToIndexMap = new Dictionary<string, int>();
                 for (var i = 0; i < header.Count; i++)
                 {
                     if (columnToPropertyMap.ContainsKey(header[i]))
                     {
-                        headerMap[columnToPropertyMap[header[i]]] = i;
+                        nameToIndexMap[columnToPropertyMap[header[i]]] = i;
                     }
                     else
                     {
-                        headerMap[header[i]] = i;
+                        nameToIndexMap[header[i]] = i;
                     }
                 }
 
                 foreach (var values in ReadLines(reader))
                 {
-                    yield return Bind<T>(headerMap, values);
+                    yield return Bind<T>(nameToIndexMap, values);
                 }
             }
         }
@@ -205,14 +205,14 @@ namespace MyCSharpLibrary
             return string.Join(",", values.Select(e => EscapeValue(e)));
         }
 
-        public static string[] Debind<T>(Dictionary<string, int> headerMap, T obj)
+        public static string[] Debind<T>(Dictionary<string, int> nameToIndexMap, T obj)
             where T : class
         {
-            var result = new string[headerMap.Count];
+            var result = new string[nameToIndexMap.Count];
             foreach (var p in typeof(T).GetProperties())
             {
-                if (!headerMap.ContainsKey(p.Name)) continue;
-                var i = headerMap[p.Name];
+                if (!nameToIndexMap.ContainsKey(p.Name)) continue;
+                var i = nameToIndexMap[p.Name];
 
                 var type = Nullable.GetUnderlyingType(p.PropertyType);
                 if (type == null)
@@ -261,14 +261,14 @@ namespace MyCSharpLibrary
                 writer.WriteLine(ToString(headerLine));
 
                 var propertyNames = typeof(T).GetProperties().Select(e => e.Name).ToList();
-                var headerMap = new Dictionary<string, int>();
+                var nameToIndexMap = new Dictionary<string, int>();
                 for (var i = 0; i < propertyNames.Count; i++)
                 {
-                    headerMap[propertyNames[i]] = i;
+                    nameToIndexMap[propertyNames[i]] = i;
                 }
                 foreach (var o in content)
                 {
-                    writer.WriteLine(ToString(Debind(headerMap, o)));
+                    writer.WriteLine(ToString(Debind(nameToIndexMap, o)));
                 }
             }
         }
