@@ -155,10 +155,18 @@ namespace MyCSharpLibrary
                         return new KeyValuePair<string, string>((a[0] as ColumnNameAttribute).Name, e.Name);
                     }
                 }).ToDictionary(e => e.Key, e => e.Value);
+
                 var headerMap = new Dictionary<string, int>();
                 for (var i = 0; i < header.Count; i++)
                 {
-                    headerMap[columnToPropertyMap[header[i]]] = i;
+                    if (columnToPropertyMap.ContainsKey(header[i]))
+                    {
+                        headerMap[columnToPropertyMap[header[i]]] = i;
+                    }
+                    else
+                    {
+                        headerMap[header[i]] = i;
+                    }
                 }
 
                 foreach (var values in ReadLines(reader))

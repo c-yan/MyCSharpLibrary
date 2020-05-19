@@ -494,5 +494,21 @@ namespace UnitTest
                 Assert.AreEqual(expected.B, actual.B);
             }
         }
+
+        [TestMethod]
+        public void LoadTest3()
+        {
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("\"Id\",\"Message\",\"Reserved\"\r\n\"1\",\"hello\",\"\"\r\n")))
+            {
+                var expected = new Class3()
+                {
+                    A = 1,
+                    B = "hello",
+                };
+                var actual = CsvHelper.Load<Class3>(ms).First();
+                Assert.AreEqual(expected.A, actual.A);
+                Assert.AreEqual(expected.B, actual.B);
+            }
+        }
     }
 }
