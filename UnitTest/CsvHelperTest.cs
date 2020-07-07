@@ -464,6 +464,29 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void SaveTest3()
+        {
+            var s = new Class3()
+            {
+                A = 1,
+                B = "hello",
+            };
+
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                CsvHelper.Save(tempFileName, new Class3[] { s });
+                var expected = "\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n";
+                var actual = File.ReadAllText(tempFileName);
+                Assert.AreEqual(expected, actual);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
+            }
+        }
+
+        [TestMethod]
         public void LoadTest1()
         {
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n")))
@@ -508,6 +531,23 @@ namespace UnitTest
                 var actual = CsvHelper.Load<Class3>(ms).First();
                 Assert.AreEqual(expected.A, actual.A);
                 Assert.AreEqual(expected.B, actual.B);
+            }
+        }
+
+        [TestMethod]
+        public void LoadTest4()
+        {
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tempFileName, "\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n");
+                var instance3 = CsvHelper.Load<Class3>(tempFileName).Single();
+                Assert.AreEqual(1, instance3.A);
+                Assert.AreEqual("hello", instance3.B);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
             }
         }
     }

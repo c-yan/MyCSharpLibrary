@@ -180,10 +180,7 @@ namespace MyCSharpLibrary
             where T : class, new()
         {
             if (encoding == null) encoding = Encoding.UTF8;
-            using (var stream = new FileStream(path, FileMode.Open))
-            {
-                return Load<T>(stream, encoding);
-            }
+            return Load<T>(new FileStream(path, FileMode.Open), encoding);
         }
 
         public static string EscapeValue(object o, string dateTimeFormat = "o")
