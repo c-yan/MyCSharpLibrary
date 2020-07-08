@@ -179,7 +179,6 @@ namespace MyCSharpLibrary
         public static IEnumerable<T> Load<T>(string path, Encoding encoding = null)
             where T : class, new()
         {
-            if (encoding == null) encoding = Encoding.UTF8;
             return Load<T>(new FileStream(path, FileMode.Open), encoding);
         }
 
@@ -273,7 +272,6 @@ namespace MyCSharpLibrary
         public static void Save<T>(string path, IEnumerable<T> content, Encoding encoding = null)
             where T : class
         {
-            if (encoding == null) encoding = Encoding.UTF8;
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 Save(stream, content, encoding);
