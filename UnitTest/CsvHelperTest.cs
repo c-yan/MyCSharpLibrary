@@ -550,5 +550,37 @@ namespace UnitTest
                 if (File.Exists(tempFileName)) File.Delete(tempFileName);
             }
         }
+
+        [TestMethod]
+        public void LoadTest5()
+        {
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tempFileName, "\"Id\",\"Message\"\r\n");
+                var instance3s = CsvHelper.Load<Class3>(tempFileName).ToList();
+                Assert.AreEqual(0, instance3s.Count);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
+            }
+        }
+
+        [TestMethod]
+        public void LoadTest6()
+        {
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tempFileName, "\"Id\",\"Message\"");
+                var instance3s = CsvHelper.Load<Class3>(tempFileName).ToList();
+                Assert.AreEqual(0, instance3s.Count);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
+            }
+        }
     }
 }
