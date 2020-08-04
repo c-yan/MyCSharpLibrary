@@ -18,6 +18,18 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void ReadLineTest1()
+        {
+            var reader = StringToStreamReader("a,b,c");
+            var t = CsvHelper.ReadLine(reader);
+            Assert.AreEqual(3, t.Count);
+            Assert.AreEqual("a", t[0]);
+            Assert.AreEqual("b", t[1]);
+            Assert.AreEqual("c", t[2]);
+            Assert.IsNull(CsvHelper.ReadLine(reader));
+        }
+
+        [TestMethod]
         public void ReadLinesTest1()
         {
             var t = CsvHelper.ReadLines(StringToStreamReader("a,b,c")).ToArray();

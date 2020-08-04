@@ -84,7 +84,7 @@ namespace MyCSharpLibrary
             }
         }
 
-        public static List<string> ReadLine(StreamReader reader)
+        public static List<string> ReadLine(TextReader reader)
         {
             var result = new List<string>();
             var sb = new StringBuilder();
@@ -133,15 +133,19 @@ namespace MyCSharpLibrary
                 sb.Clear();
             }
         LineEnd:
-            result.Add(sb.ToString());
+            var s = sb.ToString();
+            if (result.Count == 0 && s == "") return null;
+            result.Add(s);
             return result;
         }
 
-        public static IEnumerable<List<string>> ReadLines(StreamReader reader)
+        public static IEnumerable<List<string>> ReadLines(TextReader reader)
         {
-            while (!reader.EndOfStream)
+            while (true)
             {
-                yield return ReadLine(reader);
+                var result = ReadLine(reader);
+                if (result == null) break;
+                yield return result;
             }
         }
 
