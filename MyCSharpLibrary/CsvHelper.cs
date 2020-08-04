@@ -14,8 +14,76 @@ namespace MyCSharpLibrary
         public ColumnNameAttribute(string name) { Name = name; }
     }
 
+    public interface ICsvWriter<T> : IDisposable
+        where T : class
+    {
+        void Write(T o);
+        void Close();
+    }
+
     public static class CsvHelper
     {
+        static readonly Encoding UTF8NoBOM = new UTF8Encoding(false, true);
+
+        private sealed class CsvWriter<T> : ICsvWriter<T>
+            where T : class
+        {
+            StreamWriter Writer;
+            readonly bool HeaderWritten;
+            Dictionary<string, int> NameToIndexMap;
+
+            internal CsvWriter(Stream stream, bool appending = false, Encoding encoding = null)
+            {
+                if (encoding == null)
+                {
+                    if (appending) encoding = UTF8NoBOM;
+                    else encoding = Encoding.UTF8;
+                }
+                Writer = new StreamWriter(stream, encoding);
+                HeaderWritten = appending;
+                var propertyNames = typeof(T).GetProperties().Select(e => e.Name).ToList();
+                NameToIndexMap = new Dictionary<string, int>();
+                for (var i = 0; i < propertyNames.Count; i++)
+                {
+                    NameToIndexMap[propertyNames[i]] = i;
+                }
+            }
+
+            void WriteHeader()
+            {
+                var headerLine = typeof(T).GetProperties().Select(e =>
+                {
+                    var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
+                    if (a.Length == 0)
+                    {
+                        return e.Name;
+                    }
+                    else
+                    {
+                        return (a[0] as ColumnNameAttribute).Name;
+                    }
+                }).ToList();
+                Writer.WriteLine(CsvHelper.ToString(headerLine));
+            }
+
+            public void Write(T o)
+            {
+                if (!HeaderWritten) WriteHeader();
+                Writer.WriteLine(CsvHelper.ToString(Debind(NameToIndexMap, o)));
+            }
+
+            public void Dispose()
+            {
+                Writer?.Close();
+                Writer = null;
+            }
+
+            public void Close()
+            {
+                Dispose();
+            }
+        }
+
         public static List<string> ReadLine(StreamReader reader)
         {
             var result = new List<string>();
@@ -236,35 +304,27 @@ namespace MyCSharpLibrary
             return result;
         }
 
+        public static ICsvWriter<T> GetWriter<T>(Stream stream, bool appending = false, Encoding encoding = null)
+            where T : class
+        {
+            return new CsvWriter<T>(stream, appending, encoding);
+        }
+
+        public static ICsvWriter<T> GetWriter<T>(string path, bool appending = false, Encoding encoding = null)
+            where T : class
+        {
+            if (appending) return GetWriter<T>(new FileStream(path, FileMode.Append), appending, encoding);
+            else return GetWriter<T>(new FileStream(path, FileMode.Create), appending, encoding);
+        }
+
         public static void Save<T>(Stream stream, IEnumerable<T> content, Encoding encoding = null)
             where T : class
         {
-            if (encoding == null) encoding = Encoding.UTF8;
-            using (var writer = new StreamWriter(stream, encoding))
+            using (var writer = GetWriter<T>(stream, false, encoding))
             {
-                var headerLine = typeof(T).GetProperties().Select(e =>
-                {
-                    var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
-                    if (a.Length == 0)
-                    {
-                        return e.Name;
-                    }
-                    else
-                    {
-                        return (a[0] as ColumnNameAttribute).Name;
-                    }
-                }).ToList();
-                writer.WriteLine(ToString(headerLine));
-
-                var propertyNames = typeof(T).GetProperties().Select(e => e.Name).ToList();
-                var nameToIndexMap = new Dictionary<string, int>();
-                for (var i = 0; i < propertyNames.Count; i++)
-                {
-                    nameToIndexMap[propertyNames[i]] = i;
-                }
                 foreach (var o in content)
                 {
-                    writer.WriteLine(ToString(Debind(nameToIndexMap, o)));
+                    writer.Write(o);
                 }
             }
         }

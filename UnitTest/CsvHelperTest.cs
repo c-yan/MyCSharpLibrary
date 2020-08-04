@@ -487,6 +487,38 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void SaveTest4()
+        {
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                using (var writer = CsvHelper.GetWriter<Class3>(tempFileName))
+                {
+                    writer.Write(new Class3()
+                    {
+                        A = 1,
+                        B = "hello",
+                    });
+                }
+                using (var writer = CsvHelper.GetWriter<Class3>(tempFileName, true))
+                {
+                    writer.Write(new Class3()
+                    {
+                        A = 2,
+                        B = "world",
+                    });
+                }
+                var expected = "\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n\"2\",\"world\"\r\n";
+                var actual = File.ReadAllText(tempFileName);
+                Assert.AreEqual(expected, actual);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
+            }
+        }
+
+        [TestMethod]
         public void LoadTest1()
         {
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("\"Id\",\"Message\"\r\n\"1\",\"hello\"\r\n")))
