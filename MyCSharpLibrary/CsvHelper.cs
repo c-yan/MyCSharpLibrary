@@ -200,6 +200,10 @@ namespace MyCSharpLibrary
                     }
                     p.SetValue(result, DateTime.ParseExact(value, "o", null, DateTimeStyles.RoundtripKind));
                 }
+                else if (type.IsEnum)
+                {
+                    p.SetValue(result, Enum.Parse(type, value));
+                }
                 else
                 {
                     throw new ApplicationException($"Unsupported type: {typeof(T).Name}.");

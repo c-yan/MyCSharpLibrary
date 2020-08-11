@@ -254,6 +254,13 @@ namespace UnitTest
             Assert.AreEqual("\"\",\"a\",\"\",\"b\",\"\"", CsvHelper.ToString(t));
         }
 
+        public enum Enum1
+        {
+            A = 0,
+            B = 1,
+            C = 2
+        }
+
         public class Class1
         {
             public int I { get; set; }
@@ -262,6 +269,7 @@ namespace UnitTest
             public decimal D { get; set; }
             public Guid G { get; set; }
             public DateTime DT { get; set; }
+            public Enum1 E { get; set; }
         }
 
         public class Class2
@@ -272,6 +280,7 @@ namespace UnitTest
             public decimal? D { get; set; }
             public Guid? G { get; set; }
             public DateTime? DT { get; set; }
+            public Enum1? E { get; set; }
         }
 
         [TestMethod]
@@ -284,8 +293,9 @@ namespace UnitTest
                 { "D", 3 },
                 { "G", 4 },
                 { "DT", 5 },
+                { "E", 6 },
             };
-            var s = new List<string> { "10", "True", "a", "1.1", "6e917ccc-ae71-479f-91b5-4c01be65e915", "2020-04-09T11:57:56.0075565Z" };
+            var s = new List<string> { "10", "True", "a", "1.1", "6e917ccc-ae71-479f-91b5-4c01be65e915", "2020-04-09T11:57:56.0075565Z", "C" };
             var actual = CsvHelper.Bind<Class1>(d, s);
             Assert.AreEqual(10, actual.I);
             Assert.AreEqual(true, actual.B);
@@ -293,6 +303,7 @@ namespace UnitTest
             Assert.AreEqual(1.1m, actual.D);
             Assert.AreEqual(Guid.Parse("6e917ccc-ae71-479f-91b5-4c01be65e915"), actual.G);
             Assert.AreEqual(DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null), actual.DT);
+            Assert.AreEqual(Enum1.C, actual.E);
         }
 
         [TestMethod]
@@ -305,8 +316,9 @@ namespace UnitTest
                 { "D", 3 },
                 { "G", 4 },
                 { "DT", 5 },
+                { "E", 6 },
             };
-            var s = new List<string> { "10", "True", "a", "1.1", "6e917ccc-ae71-479f-91b5-4c01be65e915", "2020-04-09T11:57:56.0075565Z" };
+            var s = new List<string> { "10", "True", "a", "1.1", "6e917ccc-ae71-479f-91b5-4c01be65e915", "2020-04-09T11:57:56.0075565Z", "C" };
             var actual = CsvHelper.Bind<Class2>(d, s);
             Assert.AreEqual(10, actual.I);
             Assert.AreEqual(true, actual.B);
@@ -314,6 +326,7 @@ namespace UnitTest
             Assert.AreEqual(1.1m, actual.D);
             Assert.AreEqual(Guid.Parse("6e917ccc-ae71-479f-91b5-4c01be65e915"), actual.G);
             Assert.AreEqual(DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null), actual.DT);
+            Assert.AreEqual(Enum1.C, actual.E);
         }
 
         [TestMethod]
@@ -326,8 +339,9 @@ namespace UnitTest
                 { "D", 3 },
                 { "G", 4 },
                 { "DT", 5 },
+                { "E", 6 },
             };
-            var s = new List<string> { "", "", "", "", "", "" };
+            var s = new List<string> { "", "", "", "", "", "", "" };
             var actual = CsvHelper.Bind<Class2>(d, s);
             Assert.AreEqual(null, actual.I);
             Assert.AreEqual(null, actual.B);
@@ -335,6 +349,7 @@ namespace UnitTest
             Assert.AreEqual(null, actual.D);
             Assert.AreEqual(null, actual.G);
             Assert.AreEqual(null, actual.DT);
+            Assert.AreEqual(null, actual.E);
         }
 
         [TestMethod]
@@ -347,6 +362,7 @@ namespace UnitTest
                 { "D", 3 },
                 { "G", 4 },
                 { "DT", 5 },
+                { "E", 6 },
             };
             var s = new Class1()
             {
@@ -355,7 +371,8 @@ namespace UnitTest
                 S = "a",
                 D = 1.1m,
                 G = Guid.Parse("6e917ccc-ae71-479f-91b5-4c01be65e915"),
-                DT = DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null, DateTimeStyles.RoundtripKind)
+                DT = DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null, DateTimeStyles.RoundtripKind),
+                E = Enum1.C
             };
 
             var actual = CsvHelper.Debind(d, s);
@@ -365,6 +382,7 @@ namespace UnitTest
             Assert.AreEqual("1.1", actual[3]);
             Assert.AreEqual("6e917ccc-ae71-479f-91b5-4c01be65e915", actual[4]);
             Assert.AreEqual("2020-04-09T11:57:56.0075565Z", actual[5]);
+            Assert.AreEqual("C", actual[6]);
         }
 
         [TestMethod]
@@ -377,6 +395,7 @@ namespace UnitTest
                 { "D", 3 },
                 { "G", 4 },
                 { "DT", 5 },
+                { "E", 6 },
             };
             var s = new Class2()
             {
@@ -385,7 +404,8 @@ namespace UnitTest
                 S = "a",
                 D = 1.1m,
                 G = Guid.Parse("6e917ccc-ae71-479f-91b5-4c01be65e915"),
-                DT = DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null, DateTimeStyles.RoundtripKind)
+                DT = DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null, DateTimeStyles.RoundtripKind),
+                E = Enum1.C
             };
 
             var actual = CsvHelper.Debind(d, s);
@@ -395,6 +415,7 @@ namespace UnitTest
             Assert.AreEqual("1.1", actual[3]);
             Assert.AreEqual("6e917ccc-ae71-479f-91b5-4c01be65e915", actual[4]);
             Assert.AreEqual("2020-04-09T11:57:56.0075565Z", actual[5]);
+            Assert.AreEqual("C", actual[6]);
         }
 
         [TestMethod]
@@ -407,6 +428,7 @@ namespace UnitTest
                 { "D", 3 },
                 { "G", 4 },
                 { "DT", 5 },
+                { "E", 6 },
             };
             var s = new Class2()
             {
@@ -415,7 +437,8 @@ namespace UnitTest
                 S = null,
                 D = null,
                 G = null,
-                DT = null
+                DT = null,
+                E = null
             };
 
             var actual = CsvHelper.Debind(d, s);
@@ -425,6 +448,7 @@ namespace UnitTest
             Assert.AreEqual("", actual[3]);
             Assert.AreEqual("", actual[4]);
             Assert.AreEqual("", actual[5]);
+            Assert.AreEqual("", actual[6]);
         }
 
         [TestMethod]
@@ -437,12 +461,13 @@ namespace UnitTest
                 S = "a\r\nb",
                 D = 1.1m,
                 G = Guid.Parse("6e917ccc-ae71-479f-91b5-4c01be65e915"),
-                DT = DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null, DateTimeStyles.RoundtripKind)
+                DT = DateTime.ParseExact("2020-04-09T11:57:56.0075565Z", "o", null, DateTimeStyles.RoundtripKind),
+                E = Enum1.C
             };
 
             using (var ms = new MemoryStream())
             {
-                var expected = "\uFEFF\"I\",\"B\",\"S\",\"D\",\"G\",\"DT\"\r\n\"10\",\"True\",\"a\r\nb\",\"1.1\",\"6e917ccc-ae71-479f-91b5-4c01be65e915\",\"2020-04-09T11:57:56.0075565Z\"\r\n";
+                var expected = "\uFEFF\"I\",\"B\",\"S\",\"D\",\"G\",\"DT\",\"E\"\r\n\"10\",\"True\",\"a\r\nb\",\"1.1\",\"6e917ccc-ae71-479f-91b5-4c01be65e915\",\"2020-04-09T11:57:56.0075565Z\",\"C\"\r\n";
                 CsvHelper.Save(ms, new Class1[] { s });
                 var actual = Encoding.UTF8.GetString(ms.ToArray());
                 Assert.AreEqual(expected, actual);
