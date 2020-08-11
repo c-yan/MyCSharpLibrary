@@ -29,7 +29,7 @@ namespace MyCSharpLibrary
             where T : class
         {
             StreamWriter Writer;
-            readonly bool HeaderWritten;
+            bool HeaderWritten;
             Dictionary<string, int> NameToIndexMap;
 
             internal CsvWriter(Stream stream, bool appending = false, Encoding encoding = null)
@@ -64,6 +64,7 @@ namespace MyCSharpLibrary
                     }
                 }).ToList();
                 Writer.WriteLine(CsvHelper.ToString(headerLine));
+                HeaderWritten = true;
             }
 
             public void Write(T o)
