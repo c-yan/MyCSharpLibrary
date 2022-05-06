@@ -29,7 +29,6 @@ namespace MyCSharpLibrary
             where T : class
         {
             StreamWriter Writer;
-            bool HeaderWritten;
             readonly Dictionary<string, int> NameToIndexMap;
 
             internal CsvWriter(Stream stream, bool appending = false, Encoding encoding = null)
@@ -40,14 +39,13 @@ namespace MyCSharpLibrary
                     else encoding = Encoding.UTF8;
                 }
                 Writer = new StreamWriter(stream, encoding);
-                HeaderWritten = appending;
                 var propertyNames = typeof(T).GetProperties().Select(e => e.Name).ToList();
                 NameToIndexMap = new Dictionary<string, int>();
                 for (var i = 0; i < propertyNames.Count; i++)
                 {
                     NameToIndexMap[propertyNames[i]] = i;
                 }
-                if (!HeaderWritten) WriteHeader();
+                if (!appending) WriteHeader();
             }
 
             void WriteHeader()
@@ -65,7 +63,6 @@ namespace MyCSharpLibrary
                     }
                 }).ToList();
                 Writer.WriteLine(CsvHelper.ToString(headerLine));
-                HeaderWritten = true;
             }
 
             public void Write(T o)
