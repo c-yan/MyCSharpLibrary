@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace MyCSharpLibrary
@@ -31,35 +32,34 @@ namespace MyCSharpLibrary
 
             internal CsvWriter(Stream stream, bool appending = false, Encoding encoding = null)
             {
+                NameToIndexMap = typeof(T).GetProperties()
+                    .Where(e => e.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), true).Length == 0)
+                    .Select((e, i) => new KeyValuePair<string, int>(e.Name, i))
+                    .ToDictionary(e => e.Key, e => e.Value);
+
                 if (encoding == null)
                 {
                     if (appending) encoding = new UTF8Encoding(false, true);
                     else encoding = Encoding.UTF8;
                 }
                 Writer = new StreamWriter(stream, encoding);
-                var propertyNames = typeof(T).GetProperties().Select(e => e.Name).ToList();
-                NameToIndexMap = new Dictionary<string, int>();
-                for (var i = 0; i < propertyNames.Count; i++)
-                {
-                    NameToIndexMap[propertyNames[i]] = i;
-                }
                 if (!appending) WriteHeader();
             }
 
             void WriteHeader()
             {
-                var headerLine = typeof(T).GetProperties().Select(e =>
-                {
-                    var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
-                    if (a.Length == 0)
+                var headerLine = typeof(T).GetProperties()
+                    .Where(e => e.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), true).Length == 0)
+                    .Select(e =>
                     {
-                        return e.Name;
-                    }
-                    else
-                    {
+                        var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
+                        if (a.Length == 0)
+                        {
+                            return e.Name;
+                        }
+
                         return (a[0] as ColumnNameAttribute).Name;
-                    }
-                }).ToList();
+                    }).ToList();
                 Writer.WriteLine(CsvHelper.ToString(headerLine));
             }
 
@@ -152,6 +152,7 @@ namespace MyCSharpLibrary
             foreach (var p in typeof(T).GetProperties())
             {
                 if (!nameToIndexMap.ContainsKey(p.Name)) continue;
+
                 var value = values[nameToIndexMap[p.Name]];
 
                 var type = Nullable.GetUnderlyingType(p.PropertyType);
@@ -211,34 +212,29 @@ namespace MyCSharpLibrary
         public static IEnumerable<T> Load<T>(Stream stream, Encoding encoding = null)
             where T : class, new()
         {
-            if (encoding == null) encoding = Encoding.UTF8;
-            using (var reader = new StreamReader(stream, encoding))
-            {
-                var header = ReadLine(reader);
-                var columnToPropertyMap = typeof(T).GetProperties().Select(e =>
+            var columnToPropertyMap = typeof(T).GetProperties()
+                .Where(e => e.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), true).Length == 0)
+                .Select(e =>
                 {
-                    var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
+                    var a = e.GetCustomAttributes(typeof(ColumnNameAttribute), true);
                     if (a.Length == 0)
                     {
                         return new KeyValuePair<string, string>(e.Name, e.Name);
                     }
-                    else
-                    {
-                        return new KeyValuePair<string, string>((a[0] as ColumnNameAttribute).Name, e.Name);
-                    }
+
+                    return new KeyValuePair<string, string>((a[0] as ColumnNameAttribute).Name, e.Name);
                 }).ToDictionary(e => e.Key, e => e.Value);
 
+            if (encoding == null) encoding = Encoding.UTF8;
+            using (var reader = new StreamReader(stream, encoding))
+            {
                 var nameToIndexMap = new Dictionary<string, int>();
+                var header = ReadLine(reader);
                 for (var i = 0; i < header.Count; i++)
                 {
-                    if (columnToPropertyMap.ContainsKey(header[i]))
-                    {
-                        nameToIndexMap[columnToPropertyMap[header[i]]] = i;
-                    }
-                    else
-                    {
-                        nameToIndexMap[header[i]] = i;
-                    }
+                    if (!columnToPropertyMap.ContainsKey(header[i])) continue;
+
+                    nameToIndexMap[columnToPropertyMap[header[i]]] = i;
                 }
 
                 foreach (var values in ReadLines(reader))
@@ -280,6 +276,7 @@ namespace MyCSharpLibrary
             foreach (var p in typeof(T).GetProperties())
             {
                 if (!nameToIndexMap.ContainsKey(p.Name)) continue;
+
                 var i = nameToIndexMap[p.Name];
 
                 var type = Nullable.GetUnderlyingType(p.PropertyType);

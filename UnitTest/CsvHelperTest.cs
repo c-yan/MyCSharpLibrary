@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace UnitTest
@@ -600,6 +601,36 @@ namespace UnitTest
             }
         }
 
+        public class Class4
+        {
+            public int A { get; set; }
+            [IgnoreDataMember]
+            public string B { get; set; }
+        }
+
+        [TestMethod]
+        public void SaveTest7()
+        {
+            var s = new Class4()
+            {
+                A = 1,
+                B = "hello",
+            };
+
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                CsvHelper.Save(tempFileName, new Class4[] { s });
+                var expected = "\"A\"\r\n\"1\"\r\n";
+                var actual = File.ReadAllText(tempFileName);
+                Assert.AreEqual(expected, actual);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
+            }
+        }
+
         [TestMethod]
         public void LoadTest1()
         {
@@ -690,6 +721,23 @@ namespace UnitTest
                 File.WriteAllText(tempFileName, "\"Id\",\"Message\"");
                 var instance3s = CsvHelper.Load<Class3>(tempFileName).ToList();
                 Assert.AreEqual(0, instance3s.Count);
+            }
+            finally
+            {
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
+            }
+        }
+
+        [TestMethod]
+        public void LoadTest7()
+        {
+            var tempFileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tempFileName, "\"A\",\"B\"\r\n\"1\",\"hello\"\r\n");
+                var instance4 = CsvHelper.Load<Class4>(tempFileName).Single();
+                Assert.AreEqual(1, instance4.A);
+                Assert.AreEqual(null, instance4.B);
             }
             finally
             {
