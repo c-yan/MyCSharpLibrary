@@ -477,9 +477,9 @@ namespace UnitTest
 
         public class Class3
         {
-            [ColumnName("Id")]
+            [DataMember(Name = "Id")]
             public int A { get; set; }
-            [ColumnName("Message")]
+            [DataMember(Name = "Message")]
             public string B { get; set; }
         }
 

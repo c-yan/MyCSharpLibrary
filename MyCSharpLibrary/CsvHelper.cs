@@ -8,13 +8,6 @@ using System.Text;
 
 namespace MyCSharpLibrary
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class ColumnNameAttribute : Attribute
-    {
-        public string Name { get; private set; }
-        public ColumnNameAttribute(string name) { Name = name; }
-    }
-
     public interface ICsvWriter<T> : IDisposable
         where T : class
     {
@@ -52,13 +45,15 @@ namespace MyCSharpLibrary
                     .Where(e => e.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), true).Length == 0)
                     .Select(e =>
                     {
-                        var a = Attribute.GetCustomAttributes(e, typeof(ColumnNameAttribute));
-                        if (a.Length == 0)
+                        var a = e.GetCustomAttributes(typeof(DataMemberAttribute), true)
+                            .Cast<DataMemberAttribute>()
+                            .SingleOrDefault();
+                        if (a == null || a.Name == null)
                         {
                             return e.Name;
                         }
 
-                        return (a[0] as ColumnNameAttribute).Name;
+                        return a.Name;
                     }).ToList();
                 Writer.WriteLine(CsvHelper.ToString(headerLine));
             }
@@ -216,13 +211,15 @@ namespace MyCSharpLibrary
                 .Where(e => e.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), true).Length == 0)
                 .Select(e =>
                 {
-                    var a = e.GetCustomAttributes(typeof(ColumnNameAttribute), true);
-                    if (a.Length == 0)
+                    var a = e.GetCustomAttributes(typeof(DataMemberAttribute), true)
+                        .Cast<DataMemberAttribute>()
+                        .SingleOrDefault();
+                    if (a == null || a.Name == null)
                     {
                         return new KeyValuePair<string, string>(e.Name, e.Name);
                     }
 
-                    return new KeyValuePair<string, string>((a[0] as ColumnNameAttribute).Name, e.Name);
+                    return new KeyValuePair<string, string>(a.Name, e.Name);
                 }).ToDictionary(e => e.Key, e => e.Value);
 
             if (encoding == null) encoding = Encoding.UTF8;
