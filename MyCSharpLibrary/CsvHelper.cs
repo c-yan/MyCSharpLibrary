@@ -23,8 +23,6 @@ namespace MyCSharpLibrary
 
     public static class CsvHelper
     {
-        static readonly Encoding UTF8NoBOM = new UTF8Encoding(false, true);
-
         private sealed class CsvWriter<T> : ICsvWriter<T>
             where T : class
         {
@@ -35,7 +33,7 @@ namespace MyCSharpLibrary
             {
                 if (encoding == null)
                 {
-                    if (appending) encoding = UTF8NoBOM;
+                    if (appending) encoding = new UTF8Encoding(false, true);
                     else encoding = Encoding.UTF8;
                 }
                 Writer = new StreamWriter(stream, encoding);
